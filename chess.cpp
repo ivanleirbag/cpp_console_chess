@@ -2,35 +2,51 @@
 #include <iostream>
 #include <string.h>
 
-int main(void){
-    int i, j;
-    const int casilleroy = 3;
-    const int casillerox = 5;
-    const int tablero = 8;
+#include <ncurses.h>
 
+void options(int key_pressed){
+    switch (key_pressed)
+    {
+    case 27:
+        endwin();
+        break;
+    default:
+        break;
+    }
+}
+
+
+
+int main() {
+    
+    int i, j, k, l, key;
+    const int tablero = 8;
+    bool running = true;
 
     initscr();
-    start_color();
 
-    for (i = 1; i <= tablero; i++){
-        for (j = 1; j <=tablero; j++){
-            if ((i+j)%2 == 0){
-                attron(A_REVERSE);
-            }else{
-                attroff(A_REVERSE);
-            }
-            for (int k = 0; k < casilleroy; k++){
-                for (int w = 0; w < casillerox; w++){
-                    printw(" ");}
-                printw("\n");
+
+    while(running){
+        key = getch();
+        refresh();
+        options(key);
+
+        for(i = 0; i < tablero; i++) {
+            for(j = 0; j < tablero; j++) {
+                if((i+j) % 2 == 0) {
+                    attron(A_REVERSE);
+                } else {
+                    attroff(A_REVERSE);
+                }
+                for(k = 0; k < 3; k++) {
+                    move((3*i)+k, 5*j);
+                    for(l = 0; l < 5; l++) {
+                        printw(" ");
+                    }
+                }
             }
         }
         printw("\n");
     }
-
-    refresh();
-    getch();
-    endwin();
-
     return 0;
 }
