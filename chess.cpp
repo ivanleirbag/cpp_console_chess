@@ -12,6 +12,7 @@ const int tablero = 8;
 bool menu = true;
 bool jugando = false;
 bool seleccionando = false;
+char pieza_selec;
 
 struct Pieza{
     int x;
@@ -26,10 +27,11 @@ void dibujar_pieza(Pieza pieza, int ty, int tx, int by, int bx){
     }
 }
 
-void seleccionar_pieza(Pieza &pieza, int x, int y, bool &selec){        
+void seleccionar_pieza(Pieza &pieza, int x, int y, bool &selec, char &p_selec){        
     if(x == pieza.x && y == pieza.y){
         selec = !selec;
         pieza.seleccionada = !pieza.seleccionada;
+        p_selec = pieza.figura;
     }else{
         if(pieza.seleccionada){
             switch (pieza.figura)
@@ -38,23 +40,53 @@ void seleccionar_pieza(Pieza &pieza, int x, int y, bool &selec){
                 if(pieza.x == x || pieza.y == y){ 
                     pieza.x = x;
                     pieza.y = y;
+                    //p_selec = 'T';
                 }
                 break;
             case 'A':
                 if((pieza.x-x==pieza.y-y)||(y+x == pieza.x+pieza.y)){
                     pieza.x = x;
                     pieza.y = y;
+                    //p_selec = 'A';
                 }
                 break;
             case 'R':
                 if((pieza.x == x || pieza.y == y)||(pieza.x-x==pieza.y-y)||(y+x == pieza.x+pieza.y)){
                     pieza.x = x;
                     pieza.y = y;
+                    //p_selec = 'R';
                 }
+                break;
+            case '$':
+                pieza.x = x;
+                pieza.y = y;
+                //p_selec = '$';
                 break;
             default:
                 break;
             }
+            attron(A_REVERSE);
+            move(25,0);
+            if(selec){
+                switch (p_selec)
+                {
+                case 'T':
+                    printw("#----------TORRE SELECCIONADA----------#");
+                    break;
+                case 'A':
+                    printw("#----------ALFIL SELECCIONADO----------#");
+                    break;
+                case 'R':
+                    printw("#----------REINA SELECCIONADA----------#");
+                    break;
+                case '$':
+                    printw("#---------COMODIN SELECCIONADO---------#");
+                    break;
+                default:
+                    break;
+                }
+            }
+            attroff(A_REVERSE);
             pieza.seleccionada = false;
             selec = false;
         }
@@ -80,6 +112,8 @@ int main() {
     alfil.x = 1; alfil.y = 1; alfil.figura = 'A';
     Pieza reina;
     reina.x = 1; reina.y = 2; reina.figura = 'R';
+    Pieza todopoderosa;
+    todopoderosa.x = 1; todopoderosa.y = 3; todopoderosa.figura = '$';
 
     while(menu){
         attroff(A_REVERSE);
@@ -133,10 +167,11 @@ int main() {
                                     }else{
                                         if (reina.seleccionada && k == 1 && l == 2 && (((reina.x-j==reina.y-i)||(i+j == reina.x+reina.y)) || (reina.y == i || reina.x == j))){
                                             printw("+");
-                                        }else{
+                                            }else{
                                             dibujar_pieza(torre, i, j, l, k);
                                             dibujar_pieza(alfil, i, j, l, k);
                                             dibujar_pieza(reina, i, j, l, k);
+                                            dibujar_pieza(todopoderosa, i, j, l, k);
                                             printw(" ");}
                                             }
                                         }
@@ -149,12 +184,33 @@ int main() {
             //---------------RENDERIZADO DE LAS OPCIONES---------------//
             curs_set(1);
             attroff(A_REVERSE);
+            move(27,0);
+            curs_set(0);
+            printw("[ESC]     Para salir o deseleccionar una pieza.\n[FLECHAS] Para moverse.\n[ENTER]   Para seleccionar o mover una pieza.\n");
+            attron(A_REVERSE);
             move(25,0);
-            printw("[ESC]     Para salir o deseleccionar una pieza.\n[FLECHAS] Para moverse.\n[ENTER]   Para seleccionar o mover una pieza.");
-            key = getch();
-
-
+            if(seleccionando){
+                switch (pieza_selec)
+                {
+                case 'T':
+                    printw("#----------TORRE SELECCIONADA----------#");
+                    break;
+                case 'A':
+                    printw("#----------ALFIL SELECCIONADO----------#");
+                    break;
+                case 'R':
+                    printw("#----------REINA SELECCIONADA----------#");
+                    break;
+                case '$':
+                    printw("#---------COMODIN SELECCIONADO---------#");
+                    break;
+                default:
+                    break;
+                }
+            }
+            attroff(A_REVERSE);
             //---------------INPUT USUARIO---------------//
+            key = getch();
             switch (key)
             {
             case 27:
@@ -162,6 +218,7 @@ int main() {
                     deseleccionar_pieza(torre);
                     deseleccionar_pieza(alfil);
                     deseleccionar_pieza(reina);
+                    deseleccionar_pieza(todopoderosa);
                 }else{
                 endwin();
                 jugando = false;
@@ -171,9 +228,10 @@ int main() {
                 break;
             case 13: case 10:
                 jugando = true;
-                seleccionar_pieza(torre, posx, posy, seleccionando);
-                seleccionar_pieza(alfil, posx, posy, seleccionando);
-                seleccionar_pieza(reina, posx, posy, seleccionando);
+                seleccionar_pieza(torre, posx, posy, seleccionando, pieza_selec);
+                seleccionar_pieza(alfil, posx, posy, seleccionando, pieza_selec);
+                seleccionar_pieza(reina, posx, posy, seleccionando, pieza_selec);
+                seleccionar_pieza(todopoderosa, posx, posy, seleccionando, pieza_selec);
                 clear();
                 break;
             case KEY_LEFT:
