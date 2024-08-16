@@ -26,25 +26,49 @@ void dibujar_pieza(Pieza pieza, int ty, int tx, int by, int bx){
     }
 }
 
-void seleccionar_pieza(Pieza &pieza, int &x, int &y, bool &selec){
+void seleccionar_pieza(Pieza &pieza, int x, int y, bool &selec){        
     if(x == pieza.x && y == pieza.y){
         selec = !selec;
         pieza.seleccionada = !pieza.seleccionada;
     }else{
         if(pieza.seleccionada){
-            pieza.x = x;
-            pieza.y = y;
-            selec = !selec;
-            pieza.seleccionada = !pieza.seleccionada;
+            switch (pieza.figura)
+            {
+            case 'T':
+                if(pieza.x == x || pieza.y == y){ 
+                    pieza.x = x;
+                    pieza.y = y;
+                }
+                break;
+            case 'A':
+                if((pieza.x-x==pieza.y-y)||(y+x == pieza.x+pieza.y)){
+                    pieza.x = x;
+                    pieza.y = y;
+                }
+                break;
+            case 'R':
+                if((pieza.x == x || pieza.y == y)||(pieza.x-x==pieza.y-y)||(y+x == pieza.x+pieza.y)){
+                    pieza.x = x;
+                    pieza.y = y;
+                }
+                break;
+            default:
+                break;
+            }
+            pieza.seleccionada = false;
+            selec = false;
         }
     }
 }
-void deseleccionar_pieza(Pieza &pieza, bool &selec){
-    if(selec && pieza.seleccionada){
-        selec = false;
+
+bool deseleccionar_pieza(Pieza &pieza){
+    if(pieza.seleccionada){
         pieza.seleccionada = false;
-    }
+        return false;
+        }
+        return true;
 }
+
 
 int main() {
 
@@ -54,6 +78,8 @@ int main() {
     torre.x = 0; torre.y = 0; torre.figura = 'T';
     Pieza alfil;
     alfil.x = 1; alfil.y = 1; alfil.figura = 'A';
+    Pieza reina;
+    reina.x = 1; reina.y = 2; reina.figura = 'R';
 
     while(menu){
         attroff(A_REVERSE);
@@ -99,28 +125,32 @@ int main() {
                             if (posy == i && posx == j && k%2 == 0 && l%2 != 0){           //dibuja las esquinas del selector
                                 if(seleccionando){printw("+");}else{printw("-");}
                             }else{
-                            if (torre.seleccionada && k == 1 && l == 2 && (torre.y == i || torre.x == j)){  
-                                printw("."); 
-                            }else{
-                            if (alfil.seleccionada && k == 1 && l == 2 && ((alfil.y+i == alfil.x+j)||(i+j == tablero))){
-                                printw(".");
-                            }else{
-                                dibujar_pieza(torre, i, j, l, k);
-                                dibujar_pieza(alfil, i, j, l, k);
-                                printw(" ");
-                            }}}
+                                if (torre.seleccionada && k == 1 && l == 2 && (torre.y == i || torre.x == j)){  
+                                    printw("+"); 
+                                }else{
+                                    if (alfil.seleccionada && k == 1 && l == 2 &&  ((alfil.x-j==alfil.y-i)||(i+j == alfil.x+alfil.y))){
+                                    printw("+");
+                                    }else{
+                                        if (reina.seleccionada && k == 1 && l == 2 && (((reina.x-j==reina.y-i)||(i+j == reina.x+reina.y)) || (reina.y == i || reina.x == j))){
+                                            printw("+");
+                                        }else{
+                                            dibujar_pieza(torre, i, j, l, k);
+                                            dibujar_pieza(alfil, i, j, l, k);
+                                            dibujar_pieza(reina, i, j, l, k);
+                                            printw(" ");}
+                                            }
+                                        }
+                            }
                         }
                     }
                 }
             }
 
-            /*move((1+(posy*3)),(2+(posx*5)));
-            printw("%c", torre.figura);
-            */
+            //---------------RENDERIZADO DE LAS OPCIONES---------------//
             curs_set(1);
             attroff(A_REVERSE);
             move(25,0);
-            printw("[ESC] Para salir.\n[FLECHAS] Para moverse.\n[ENTER] Para seleccionar una pieza.");
+            printw("[ESC]     Para salir o deseleccionar una pieza.\n[FLECHAS] Para moverse.\n[ENTER]   Para seleccionar o mover una pieza.");
             key = getch();
 
 
@@ -128,44 +158,35 @@ int main() {
             switch (key)
             {
             case 27:
-                if(seleccionando && torre.seleccionada){
-                    seleccionando = false;
-                    torre.seleccionada = false;
+                if(seleccionando){
+                    deseleccionar_pieza(torre);
+                    deseleccionar_pieza(alfil);
+                    deseleccionar_pieza(reina);
                 }else{
                 endwin();
                 jugando = false;
                 }
+                seleccionando = false;
                 clear();
                 break;
             case 13: case 10:
                 jugando = true;
                 seleccionar_pieza(torre, posx, posy, seleccionando);
                 seleccionar_pieza(alfil, posx, posy, seleccionando);
+                seleccionar_pieza(reina, posx, posy, seleccionando);
                 clear();
                 break;
             case KEY_LEFT:
-                if(torre.seleccionada && posx > 0){
-                    if(posy == torre.y){posx-=1;}else{break;}
-                }else{
-                    if (posx > 0){posx -= 1;}}
+                if (posx > 0){posx -= 1;}
                 break;
             case KEY_RIGHT:
-                if(torre.seleccionada && posx<7){
-                    if(posy == torre.y){posx+=1;}else{break;}
-                }else{
-                    if (posx<7){posx += 1;}}
+                if (posx<7){posx += 1;}
                 break;
             case KEY_UP:
-                if(torre.seleccionada && posy > 0){
-                    if(posx == torre.x){posy-=1;}else{break;}
-                }else{
-                    if (posy > 0){posy -= 1;}}
+                if (posy > 0){posy -= 1;}
                 break;
             case KEY_DOWN:
-                if(torre.seleccionada && posy<7){
-                    if(posx == torre.x){posy+=1;}else{break;}
-                }else{
-                    if (posy<7){posy += 1;}}
+                if (posy<7){posy += 1;}
                 break;
             default:
                 break;
